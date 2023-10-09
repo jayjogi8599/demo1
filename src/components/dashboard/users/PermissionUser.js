@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { Modal } from "react-bootstrap";
 import { Row, Col, Card, Table } from "react-bootstrap";
 import { MdOutlineEditCalendar } from "react-icons/md";
-
-import { useSelector } from "react-redux";
-
+import { useSelector, useDispatch } from "react-redux";
+import { setSelectedDataAction } from "../../../store/action/commonActions";
 const PermissionUser = () => {
   const Users = useSelector((state) => state.commonReducer.manageUser);
 
@@ -13,8 +12,12 @@ const PermissionUser = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedModuleId, setSelectedModuleId] = useState(null);
+  const [selectedCheckboxIds, setSelectedCheckboxIds] = useState([]);
+  const [checkboxes, setCheckboxes] = useState({});
 
-    const selectedModules = pageData
+  const dispatch = useDispatch();
+
+  const selectedModules = pageData
     .filter((data) => data.moduleName === selectedModuleId)
     .map((data) => data.name);
 
@@ -31,46 +34,90 @@ const PermissionUser = () => {
     e.preventDefault();
     setShowForm(false);
   };
+  const checkboxIds = {
+    None: "1",
+    View: "2",
+    Add: "3",
+    Update: "4",
+    Delete: "5",
+  };
 
-  const [checkboxes, setCheckboxes] = useState({});
-  const handleCheckboxChange = (moduleName, permission, checked) => {
+  const handleCheckboxChange = (
+    moduleName,
+    permission,
+    checked,
+  
+  ) => {
     const newCheckboxes = { ...checkboxes };
-
+    const newSelectedCheckboxIds = [...selectedCheckboxIds];
+  
+    if (checked) {
+      newSelectedCheckboxIds.push(checkboxIds[permission]);
+    } else {
+      const index = newSelectedCheckboxIds.indexOf(checkboxIds[permission]);
+      if (index !== -1) {
+        newSelectedCheckboxIds.splice(index, 1);
+      }
+    }
+  
+    setSelectedCheckboxIds(newSelectedCheckboxIds);
+  
     if (!newCheckboxes[moduleName]) {
       newCheckboxes[moduleName] = {};
     }
-
+  
     if (permission === "None") {
       newCheckboxes[moduleName]["None"] = checked;
-
+  
       if (checked) {
-        newCheckboxes[moduleName] = {
-          None: true,
-          View: false,
-          Add: false,
-          Update: false,
-          Delete: false,
-        };
+        ["View", "Add", "Update", "Delete"].forEach((perm) => {
+          newCheckboxes[moduleName][perm] = false;
+        });
       }
     } else {
       newCheckboxes[moduleName]["None"] = false;
       newCheckboxes[moduleName][permission] = checked;
-
+  
       const numSelected = ["Add", "Update", "Delete"].reduce((count, perm) => {
         if (newCheckboxes[moduleName][perm]) {
           return count + 1;
         }
         return count;
       }, 0);
-
+  
       if (numSelected >= 1) {
         newCheckboxes[moduleName]["View"] = true;
       } else {
         newCheckboxes[moduleName]["View"] = false;
       }
+  
+      const noOtherPermissionsSelected = ["Add", "Update", "Delete"].every(
+        (perm) => !newCheckboxes[moduleName][perm]
+      );
+  
+      if (noOtherPermissionsSelected) {
+        newCheckboxes[moduleName]["None"] = true;
+      } else {
+        newCheckboxes[moduleName]["None"] = false;
+      }
     }
+  
     setCheckboxes(newCheckboxes);
+  
+    const usersId = selectedUserId;
+    const moduleNames = selectedModuleId;
+    const pageDataItem = pageData.find((data) => data.name === moduleName);
+    let pageId = "";
+  
+    if (pageDataItem) {
+      pageId = pageDataItem.id;
+      console.log(`Page ID ${moduleName}:`, pageDataItem.id);
+    }
+  
+    
+    dispatch(setSelectedDataAction(usersId, moduleNames, pageId, newSelectedCheckboxIds));
   };
+  
 
   return (
     <>
@@ -91,18 +138,19 @@ const PermissionUser = () => {
                         <tr>
                           <th className="border-bottom">#</th>
                           <th className="border-bottom">First Name</th>
-                          <th className="border-bottom ">Last Name</th>
+                          <th className="border-bottom">Last Name</th>
                           <th className="border-bottom">Middle Name</th>
                           <th className="border-bottom">Role</th>
                           <th className="border-bottom">Designation</th>
-                          <th className="border-bottom">Modulue</th>
+                          <th className="border-bottom">Module</th>
                           <th className="border-bottom">Edit</th>
                         </tr>
                       </thead>
+
                       <tbody>
                         {Users.map((user, index) => (
-                          <tr key={user.id}>
-                            <td>{index + 1}</td>
+                          <tr key={index}>
+                            <td>{user.id}</td>
                             <td>{user.firstName}</td>
                             <td>{user.lastName}</td>
                             <td>{user.middleName}</td>
@@ -143,7 +191,7 @@ const PermissionUser = () => {
                               <form>
                                 <div className="form-group">
                                   <label htmlFor="permissionDropdown">
-                                    Select Permission:
+                                    Select Modules:
                                   </label>
                                   <select
                                     className="form-control"
@@ -155,11 +203,11 @@ const PermissionUser = () => {
                                     }
                                   >
                                     <option value="">
-                                      - - - Choose Module - - -
-                                    </option>{" "}
+                                      - - - Select Module - - -
+                                    </option>
                                     {selectedUserModules.map(
                                       (module, index) => (
-                                        <option key={index} value={module}>
+                                        <option key={module} value={module}>
                                           {module}
                                         </option>
                                       )
@@ -180,14 +228,17 @@ const PermissionUser = () => {
 
                                     return (
                                       <>
-                                        <div className="d-flex align-items-center mt-2 ">
+                                        <div
+                                          key={`module-${index}`}
+                                          className="d-flex align-items-center mt-2 "
+                                        >
                                           <th className="mr-4">PageID</th>
                                           <th className="mr-5">Page Name</th>
                                           <th>Permissions</th>
                                         </div>
                                         <li
+                                          key={`module-item-${index}`}
                                           className="list-group-item d-flex justify-content-between align-items-center"
-                                          key={index}
                                         >
                                           <strong>
                                             {pageDataItem
@@ -210,7 +261,9 @@ const PermissionUser = () => {
                                                 handleCheckboxChange(
                                                   moduleName,
                                                   "None",
-                                                  !moduleCheckboxes["None"]
+                                                  !moduleCheckboxes["None"],
+                                                  index,
+                                                  `None`
                                                 )
                                               }
                                             />
@@ -235,7 +288,9 @@ const PermissionUser = () => {
                                                 handleCheckboxChange(
                                                   moduleName,
                                                   "View",
-                                                  !moduleCheckboxes["View"]
+                                                  !moduleCheckboxes["View"],
+                                                  index,
+                                                  `View`
                                                 )
                                               }
                                             />
@@ -259,7 +314,9 @@ const PermissionUser = () => {
                                                 handleCheckboxChange(
                                                   moduleName,
                                                   "Add",
-                                                  !moduleCheckboxes["Add"]
+                                                  !moduleCheckboxes["Add"],
+                                                  index,
+                                                  `Add`
                                                 )
                                               }
                                             />
@@ -284,7 +341,9 @@ const PermissionUser = () => {
                                                 handleCheckboxChange(
                                                   moduleName,
                                                   "Update",
-                                                  !moduleCheckboxes["Update"]
+                                                  !moduleCheckboxes["Update"],
+                                                  index,
+                                                  `Update`
                                                 )
                                               }
                                             />
@@ -309,7 +368,9 @@ const PermissionUser = () => {
                                                 handleCheckboxChange(
                                                   moduleName,
                                                   "Delete",
-                                                  !moduleCheckboxes["Delete"]
+                                                  !moduleCheckboxes["Delete"],
+                                                  index,
+                                                  `Delete`
                                                 )
                                               }
                                             />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, } from "react";
 import { Modal } from "react-bootstrap";
 import { Row, Col, Card, Table } from "react-bootstrap";
 import { MdOutlineEditCalendar } from "react-icons/md";
@@ -9,7 +9,7 @@ import {
   createUser,
   editUser,
   deleteCommon,
-  resetStoreAction,
+  
 } from "../../../store/action/commonActions";
 
 const ManageUser = () => {

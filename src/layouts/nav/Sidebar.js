@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/img-redundant-alt */
-import React, { useState } from "react";
+import React, { useState,useEffect  } from "react";
 
 import { SidebarMenuData } from "./SidebarData";
 import { Link } from "react-router-dom";
@@ -7,23 +7,49 @@ import { Link } from "react-router-dom";
 
 const Sidebar = () => {
 
-  const [activeMenu, setActiveMenu] = useState(null);
+  const [activeParentMenu, setActiveParentMenu] = useState(null);
+  const [activeChildMenu, setActiveChildMenu] = useState(null);
   const [openMenus, setOpenMenus] = useState([]);
 
- 
-
+  useEffect(() => {
+   
+    const firstParentMenu = SidebarMenuData.find((item) => item.isParent);
+    if (firstParentMenu) {
+      setOpenMenus([firstParentMenu.title]);
+      setActiveParentMenu(firstParentMenu.title);
+    }
+  }, []);
   const toggleMenu = (menuTitle) => {
     if (openMenus.includes(menuTitle)) {
-      // If the menu is open, close it
       setOpenMenus(openMenus.filter((menu) => menu !== menuTitle));
     } else {
-      // If the menu is closed, open it
+      setActiveParentMenu(menuTitle);
       setOpenMenus([...openMenus, menuTitle]);
     }
   };
+
   const handleMenuClick = (link) => {
-    setActiveMenu(link);
+    setActiveChildMenu(link);
   };
+
+  useEffect(() => {
+    // Check if any child page is active
+    const isChildActive = SidebarMenuData.some((item) =>
+      item.submenu ? item.submenu.some((subItem) => subItem.link === activeChildMenu) : false
+    );
+
+    if (isChildActive) {
+      // Find the parent menu item and set it as active
+      const parentMenuItem = SidebarMenuData.find((item) =>
+        item.submenu ? item.submenu.some((subItem) => subItem.link === activeChildMenu) : false
+      );
+
+      if (parentMenuItem) {
+        setActiveParentMenu(parentMenuItem.title);
+      }
+    }
+  }, [activeChildMenu]);
+
   return (
     <>
       {/* <!-- Main Sidebar Container --> */}
@@ -88,10 +114,10 @@ const Sidebar = () => {
                   <Link
                     to={item.link}
                     className={`nav-link ${
-                      activeMenu === item.link || activeMenu === item.title
-                        ? item.submenu
+                      activeChildMenu  === item.link || activeParentMenu  === item.title
+                       
                           ? "active "
-                          : "active "
+                          
                         : ""
                     }`}
                     onClick={() => {
@@ -115,7 +141,7 @@ const Sidebar = () => {
                           <Link
                             to={subItem.link}
                             className={`nav-link ${
-                              activeMenu === subItem.link ? "active green" : ""
+                              activeParentMenu  === subItem.link ? "active green" : ""
                             }`}
                             onClick={() => handleMenuClick(subItem.link)}
                           >

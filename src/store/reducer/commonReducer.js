@@ -5,7 +5,7 @@ import {
   EDIT_COMMON,
   DELETE_COMMON,
   RESET_STORE,
- 
+SET_SELECTED_DATA
 } from "../action/commonActions";
 
 const loadFromLocalStorage = () => {
@@ -21,16 +21,23 @@ const loadFromLocalStorage = () => {
   }
 };
 
-const initialState = loadFromLocalStorage() || {
+const initialState = loadFromLocalStorage() ||  {
   roles: [],
   modules: [],
   designations: [],
   pagesone: [],
-  manageUser: []
+  manageUser: [],
+  selectedData: {
+    usersId: null,
+    moduleNames: null,
+    pageId: null,
+    pagePermission: null,
+  },
 };
 
 const commonReducer = (state = initialState, action) => {
   switch (action.type) {
+    
     case CREATE_COMMON:
       const { sliceName, item } = action.payload;
 
@@ -43,18 +50,33 @@ const commonReducer = (state = initialState, action) => {
       return newStateCreate;
 
     case CREATE_USER:
-      const { sliceName: userSliceName, user,userPermission  } = action.payload;
+      const { sliceName: userSliceName, user } = action.payload;
       const userStateCreate = {
         ...state,
         [userSliceName]: [...state[userSliceName], user], 
-        manageUser: {
-          ...state.manageUser,
-          userPermission: userPermission, 
-        },
+       
       };
 
       localStorage.setItem("commonData", JSON.stringify(userStateCreate));
       return userStateCreate;
+
+      case SET_SELECTED_DATA:
+        const { usersId, moduleNames, pageId, pagePermission } = action.payload;
+        const updatedSelectedData = {
+          ...state.selectedData,
+          usersId,
+          moduleNames,
+          pageId,
+          pagePermission,
+        };
+  
+       
+        const newStateWithSelectedData = {
+          ...state,
+          selectedData: updatedSelectedData,
+        };
+        localStorage.setItem("commonData", JSON.stringify(newStateWithSelectedData));
+        return newStateWithSelectedData;
 
     case EDIT_USER:
       const {
@@ -89,7 +111,7 @@ const commonReducer = (state = initialState, action) => {
 
     case EDIT_COMMON:
       const { sliceName: editedSliceName, id, changes } = action.payload;
-      const { name = "", moduleName = "",moduleId = "" } = changes;// Destructure name and moduleName
+      const { name = "", moduleName = "",moduleId = "" } = changes;
       const newStateEdit = {
         ...state,
         [editedSliceName]: state[editedSliceName].map((item) =>
@@ -115,7 +137,7 @@ const commonReducer = (state = initialState, action) => {
       localStorage.removeItem("commonData");
       return {
         ...state,
-        manageUser: [], // Set manageUser to an empty array
+        manageUser: [], 
       };
 
     default:
