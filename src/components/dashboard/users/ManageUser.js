@@ -5,7 +5,6 @@ import { MdOutlineEditCalendar } from "react-icons/md";
 import { AiOutlineDelete } from "react-icons/ai";
 import { useSelector, useDispatch } from "react-redux";
 import Select from "react-select";
-
 import {
   createUser,
   editUser,
@@ -291,13 +290,12 @@ const ManageUser = () => {
                                 <div className="form-group">
                                   <p className="mb-2">Module</p>
                                   <Select
-                                     className="custom-react-select-container"
-                                     classNamePrefix="custom-react-select"
+                                    className="custom-react-select-container"
+                                    classNamePrefix="custom-react-select"
                                     options={module.map((role) => ({
                                       value: role.name,
                                       label: role.name,
                                     }))}
-                                    
                                     isMulti
                                     value={selectedModules}
                                     onChange={handleSelectChange}

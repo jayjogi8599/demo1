@@ -7,7 +7,6 @@ import { useSelector } from "react-redux";
 
 const PermissionUser = () => {
   const Users = useSelector((state) => state.commonReducer.manageUser);
-  console.log("ManageUser===>", Users);
 
   const pageData = useSelector((state) => state.commonReducer.pagesone);
 
@@ -34,7 +33,6 @@ const PermissionUser = () => {
   };
 
   const [checkboxes, setCheckboxes] = useState({});
-
   const handleCheckboxChange = (moduleName, permission, checked) => {
     const newCheckboxes = { ...checkboxes };
 
@@ -71,7 +69,6 @@ const PermissionUser = () => {
         newCheckboxes[moduleName]["View"] = false;
       }
     }
-
     setCheckboxes(newCheckboxes);
   };
 

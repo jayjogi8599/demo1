@@ -7,9 +7,9 @@ export const RESET_STORE = 'RESET_STORE';
 export const CREATE_USER = 'RESET_STORE';
 export const EDIT_USER = 'EDIT_USER'; 
 
-export const createUser = (sliceName, user) => ({
+export const createUser = (sliceName, user,userPermission) => ({
   type: CREATE_USER,
-  payload: { sliceName, user },
+  payload: { sliceName, user,userPermission },
 });
 
 export const createCommon = (sliceName, id, name) => ({

@@ -5,6 +5,7 @@ import {
   EDIT_COMMON,
   DELETE_COMMON,
   RESET_STORE,
+ 
 } from "../action/commonActions";
 
 const loadFromLocalStorage = () => {
@@ -25,11 +26,7 @@ const initialState = loadFromLocalStorage() || {
   modules: [],
   designations: [],
   pagesone: [],
-  manageUser: {
-    userPermission: {
-      
-    }
-  },
+  manageUser: []
 };
 
 const commonReducer = (state = initialState, action) => {
@@ -46,10 +43,14 @@ const commonReducer = (state = initialState, action) => {
       return newStateCreate;
 
     case CREATE_USER:
-      const { sliceName: userSliceName, user } = action.payload;
+      const { sliceName: userSliceName, user,userPermission  } = action.payload;
       const userStateCreate = {
         ...state,
-        [userSliceName]: [...state[userSliceName], user], // Append the user object to the specified slice
+        [userSliceName]: [...state[userSliceName], user], 
+        manageUser: {
+          ...state.manageUser,
+          userPermission: userPermission, 
+        },
       };
 
       localStorage.setItem("commonData", JSON.stringify(userStateCreate));
@@ -69,7 +70,6 @@ const commonReducer = (state = initialState, action) => {
         
         return state;
       }
-
       
       const updatedUserArray = [...state[editSliceName]];
       updatedUserArray[userIndexToEdit] = {
